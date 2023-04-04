@@ -1,0 +1,147 @@
+Namespace(cfg='/root/autodl-tmp/Codes/DDRNet/experiments/camvid/ddrnet23_slim.yaml', local_rank=0, opts=[], seed=304)
+AUTO_RESUME: False
+CUDNN:
+  BENCHMARK: True
+  DETERMINISTIC: False
+  ENABLED: True
+DATASET:
+  DATASET: camvid
+  EXTRA_TRAIN_SET: 
+  MODEL: train
+  NUM_CLASSES: 11
+  ROOT: dataset/camvid
+  TEST_SET: val.txt
+  TRAIN_SET: train.txt
+DEBUG:
+  DEBUG: False
+  SAVE_BATCH_IMAGES_GT: False
+  SAVE_BATCH_IMAGES_PRED: False
+  SAVE_HEATMAPS_GT: False
+  SAVE_HEATMAPS_PRED: False
+GPUS: (0,)
+LOG_DIR: log
+LOSS:
+  BALANCE_WEIGHTS: [1, 0.4]
+  CLASS_BALANCE: False
+  OHEMKEEP: 131072
+  OHEMTHRES: 0.9
+  USE_OHEM: True
+MODEL:
+  ALIGN_CORNERS: True
+  EXTRA:
+    
+  NAME: ddrnet_23_slim
+  NUM_OUTPUTS: 2
+  OCR:
+    DROPOUT: 0.05
+    KEY_CHANNELS: 256
+    MID_CHANNELS: 512
+    SCALE: 1
+  PRETRAINED: 
+OUTPUT_DIR: output
+PIN_MEMORY: True
+PRINT_FREQ: 5
+RANK: 0
+TEST:
+  BASE_SIZE: 960
+  BATCH_SIZE_PER_GPU: 4
+  FLIP_TEST: False
+  IMAGE_SIZE: [960, 720]
+  MODEL_FILE: 
+  MULTI_SCALE: False
+  NUM_SAMPLES: 0
+  OUTPUT_INDEX: 1
+  SCALE_LIST: [1]
+TRAIN:
+  BASE_SIZE: 960
+  BATCH_SIZE_PER_GPU: 8
+  BEGIN_EPOCH: 0
+  DOWNSAMPLERATE: 1
+  END_EPOCH: 968
+  EXTRA_EPOCH: 0
+  EXTRA_LR: 0.001
+  FLIP: True
+  FREEZE_EPOCHS: -1
+  FREEZE_LAYERS: 
+  IGNORE_LABEL: 255
+  IMAGE_SIZE: [960, 720]
+  LR: 0.001
+  LR_FACTOR: 0.1
+  LR_STEP: [60, 80]
+  MOMENTUM: 0.9
+  MULTI_SCALE: True
+  NESTEROV: False
+  NONBACKBONE_KEYWORDS: []
+  NONBACKBONE_MULT: 10
+  NUM_SAMPLES: 0
+  OPTIMIZER: sgd
+  RANDOM_BRIGHTNESS: False
+  RANDOM_BRIGHTNESS_SHIFT_VALUE: 10
+  RESUME: False
+  SCALE_FACTOR: 16
+  SHUFFLE: True
+  WD: 0.0005
+WORKERS: 4
+Added key: store_based_barrier_key:1 to store for rank: 0
+Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 1 nodes.
+Seeding with 304
+=> creating output/camvid/ddrnet23_slim
+=> creating log/camvid/ddrnet_23_slim/ddrnet23_slim_2023-02-17-09-14
+---------------devices: 0
+tools/train.py:257: DeprecationWarning: `np.int` is a deprecated alias for the builtin `int`. To silence this warning, use `int` by itself. Doing this will not modify any behavior and is safe. When replacing `np.int`, you may wish to use e.g. `np.int64` or `np.int32` to specify the precision. If you wish to review your current use, check the release note link for additional information.
+Deprecated in NumPy 1.20; for more details and guidance: https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
+  epoch_iters = np.int(train_dataset.__len__() /
+[W reducer.cpp:1303] Warning: find_unused_parameters=True was specified in DDP constructor, but did not find any unused parameters in the forward pass. This flag results in an extra traversal of the autograd graph every iteration,  which can adversely affect performance. If your model indeed never has any unused parameters in the forward pass, consider turning this flag off. Note that this warning may be a false positive if your model has flow control causing later iterations to have unused parameters. (function operator())
+/root/miniconda3/lib/python3.8/site-packages/torch/nn/functional.py:3631: UserWarning: Default upsampling behavior when mode=bilinear is changed to align_corners=False since 0.4.0. Please specify align_corners=True if the old behavior is desired. See the documentation of nn.Upsample for details.
+  warnings.warn(
+Epoch: [0/968] Iter:[0/46], Time: 5.58, lr: [0.001], Loss: 4.715247, Acc:0.032790
+Epoch: [0/968] Iter:[5/46], Time: 1.47, lr: [0.0009998989394253944], Loss: 4.369813, Acc:0.030371
+Epoch: [0/968] Iter:[10/46], Time: 1.18, lr: [0.0009997978777158568], Loss: 4.112253, Acc:0.038347
+Epoch: [0/968] Iter:[15/46], Time: 1.07, lr: [0.000999696814871247], Loss: 3.907596, Acc:0.045368
+Epoch: [0/968] Iter:[20/46], Time: 1.14, lr: [0.0009995957508914253], Loss: 3.744753, Acc:0.060098
+Epoch: [0/968] Iter:[25/46], Time: 1.07, lr: [0.0009994946857762508], Loss: 3.600283, Acc:0.073620
+Epoch: [0/968] Iter:[30/46], Time: 1.03, lr: [0.0009993936195255833], Loss: 3.453929, Acc:0.093076
+Epoch: [0/968] Iter:[35/46], Time: 1.00, lr: [0.0009992925521392824], Loss: 3.330087, Acc:0.113747
+Epoch: [0/968] Iter:[40/46], Time: 1.04, lr: [0.000999191483617208], Loss: 3.221225, Acc:0.134442
+Epoch: [0/968] Iter:[45/46], Time: 1.03, lr: [0.0009990904139592196], Loss: 3.125266, Acc:0.153380
+0 [6.45258103e-04 3.06558955e-01 6.36394223e-03 4.30829391e-03
+ 1.60668983e-02 2.10529078e-02 6.48333435e-01 3.71483825e-02
+ 2.03999480e-03 7.73172138e-01 2.16104542e-01] 0.18470861339854788
+1 [3.57416233e-03 1.56488073e-01 3.00788882e-02 5.69176458e-02
+ 1.20668517e-02 9.10129824e-03 5.60873267e-01 1.92292342e-02
+ 3.14983978e-04 4.92478827e-01 1.30527399e-01] 0.13378642105638516
+=> saving checkpoint to output/camvid/ddrnet23_slimcheckpoint.pth.tar
+Loss: 2.745, MeanIU:  0.1338, Best_mIoU:  0.1338
+[3.57416233e-03 1.56488073e-01 3.00788882e-02 5.69176458e-02
+ 1.20668517e-02 9.10129824e-03 5.60873267e-01 1.92292342e-02
+ 3.14983978e-04 4.92478827e-01 1.30527399e-01]
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+Epoch: [1/968] Iter:[0/46], Time: 4.88, lr: [0.0009990701998912998], Loss: 2.266437, Acc:0.286150
+Epoch: [1/968] Iter:[5/46], Time: 1.48, lr: [0.0009989691288700292], Loss: 2.065585, Acc:0.321681
+Epoch: [1/968] Iter:[10/46], Time: 1.19, lr: [0.0009988680567125353], Loss: 2.168657, Acc:0.338645
+Epoch: [1/968] Iter:[15/46], Time: 1.08, lr: [0.0009987669834186778], Loss: 2.117535, Acc:0.360580
+Epoch: [1/968] Iter:[20/46], Time: 1.15, lr: [0.000998665908988316], Loss: 2.091057, Acc:0.374200
+Epoch: [1/968] Iter:[25/46], Time: 1.08, lr: [0.0009985648334213096], Loss: 2.060776, Acc:0.388363
+Epoch: [1/968] Iter:[30/46], Time: 1.04, lr: [0.0009984637567175179], Loss: 2.032856, Acc:0.387319
+Epoch: [1/968] Iter:[35/46], Time: 1.01, lr: [0.0009983626788768], Loss: 2.005633, Acc:0.392774
+Epoch: [1/968] Iter:[40/46], Time: 1.06, lr: [0.0009982615998990155], Loss: 1.996661, Acc:0.400863
+Epoch: [1/968] Iter:[45/46], Time: 1.03, lr: [0.0009981605197840234], Loss: 1.971281, Acc:0.406212
+=> saving checkpoint to output/camvid/ddrnet23_slimcheckpoint.pth.tar
+Loss: 2.745, MeanIU:  0.1338, Best_mIoU:  0.1338
+[3.57416233e-03 1.56488073e-01 3.00788882e-02 5.69176458e-02
+ 1.20668517e-02 9.10129824e-03 5.60873267e-01 1.92292342e-02
+ 3.14983978e-04 4.92478827e-01 1.30527399e-01]
+Epoch: [2/968] Iter:[0/46], Time: 4.74, lr: [0.0009981403036245478], Loss: 1.760159, Acc:0.372946
+Epoch: [2/968] Iter:[5/46], Time: 1.45, lr: [0.000998039222144721], Loss: 1.690791, Acc:0.463622
+Epoch: [2/968] Iter:[10/46], Time: 1.16, lr: [0.0009979381395273771], Loss: 1.663901, Acc:0.463021
+Epoch: [2/968] Iter:[15/46], Time: 1.05, lr: [0.0009978370557723753], Loss: 1.656044, Acc:0.466426
+Epoch: [2/968] Iter:[20/46], Time: 1.13, lr: [0.0009977359708795747], Loss: 1.632320, Acc:0.467987

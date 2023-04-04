@@ -1,0 +1,104 @@
+Namespace(cfg='/root/autodl-tmp/Codes/DDRNet/experiments/camvid/ddrnet23_slim.yaml', local_rank=0, opts=[], seed=304)
+AUTO_RESUME: False
+CUDNN:
+  BENCHMARK: True
+  DETERMINISTIC: False
+  ENABLED: True
+DATASET:
+  DATASET: camvid
+  EXTRA_TRAIN_SET: 
+  MODEL: train
+  NUM_CLASSES: 11
+  ROOT: dataset/camvid
+  TEST_SET: val.txt
+  TRAIN_SET: train.txt
+DEBUG:
+  DEBUG: False
+  SAVE_BATCH_IMAGES_GT: False
+  SAVE_BATCH_IMAGES_PRED: False
+  SAVE_HEATMAPS_GT: False
+  SAVE_HEATMAPS_PRED: False
+GPUS: (0,)
+LOG_DIR: log
+LOSS:
+  BALANCE_WEIGHTS: [1, 0.4]
+  CLASS_BALANCE: False
+  OHEMKEEP: 131072
+  OHEMTHRES: 0.9
+  USE_OHEM: True
+MODEL:
+  ALIGN_CORNERS: True
+  EXTRA:
+    
+  NAME: ddrnet_23_slim
+  NUM_OUTPUTS: 2
+  OCR:
+    DROPOUT: 0.05
+    KEY_CHANNELS: 256
+    MID_CHANNELS: 512
+    SCALE: 1
+  PRETRAINED: pretrained_models/DDRNet23s_cityscapes.pth
+OUTPUT_DIR: output
+PIN_MEMORY: True
+PRINT_FREQ: 5
+RANK: 0
+TEST:
+  BASE_SIZE: 960
+  BATCH_SIZE_PER_GPU: 4
+  FLIP_TEST: False
+  IMAGE_SIZE: [960, 720]
+  MODEL_FILE: 
+  MULTI_SCALE: False
+  NUM_SAMPLES: 0
+  OUTPUT_INDEX: 1
+  SCALE_LIST: [1]
+TRAIN:
+  BASE_SIZE: 960
+  BATCH_SIZE_PER_GPU: 8
+  BEGIN_EPOCH: 0
+  DOWNSAMPLERATE: 1
+  END_EPOCH: 968
+  EXTRA_EPOCH: 0
+  EXTRA_LR: 0.001
+  FLIP: True
+  FREEZE_EPOCHS: -1
+  FREEZE_LAYERS: 
+  IGNORE_LABEL: 255
+  IMAGE_SIZE: [960, 720]
+  LR: 0.001
+  LR_FACTOR: 0.1
+  LR_STEP: [60, 80]
+  MOMENTUM: 0.9
+  MULTI_SCALE: True
+  NESTEROV: False
+  NONBACKBONE_KEYWORDS: []
+  NONBACKBONE_MULT: 10
+  NUM_SAMPLES: 0
+  OPTIMIZER: sgd
+  RANDOM_BRIGHTNESS: False
+  RANDOM_BRIGHTNESS_SHIFT_VALUE: 10
+  RESUME: False
+  SCALE_FACTOR: 16
+  SHUFFLE: True
+  WD: 0.0005
+WORKERS: 4
+Added key: store_based_barrier_key:1 to store for rank: 0
+Rank 0: Completed store-based barrier for key:store_based_barrier_key:1 with 1 nodes.
+Seeding with 304
+=> creating output/with pretranied_camvid/ddrnet23_slim
+=> creating log/with pretranied_camvid/ddrnet_23_slim/ddrnet23_slim_2023-02-18-10-03
+---------------devices: 0
+tools/train.py:257: DeprecationWarning: `np.int` is a deprecated alias for the builtin `int`. To silence this warning, use `int` by itself. Doing this will not modify any behavior and is safe. When replacing `np.int`, you may wish to use e.g. `np.int64` or `np.int32` to specify the precision. If you wish to review your current use, check the release note link for additional information.
+Deprecated in NumPy 1.20; for more details and guidance: https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
+  epoch_iters = np.int(train_dataset.__len__() /
+[W reducer.cpp:1303] Warning: find_unused_parameters=True was specified in DDP constructor, but did not find any unused parameters in the forward pass. This flag results in an extra traversal of the autograd graph every iteration,  which can adversely affect performance. If your model indeed never has any unused parameters in the forward pass, consider turning this flag off. Note that this warning may be a false positive if your model has flow control causing later iterations to have unused parameters. (function operator())
+/root/miniconda3/lib/python3.8/site-packages/torch/nn/functional.py:3631: UserWarning: Default upsampling behavior when mode=bilinear is changed to align_corners=False since 0.4.0. Please specify align_corners=True if the old behavior is desired. See the documentation of nn.Upsample for details.
+  warnings.warn(
+Epoch: [0/968] Iter:[0/46], Time: 5.43, lr: [0.001], Loss: 4.402816, Acc:0.034374
+Epoch: [0/968] Iter:[5/46], Time: 1.46, lr: [0.0009998989394253944], Loss: 4.327929, Acc:0.048977
+Epoch: [0/968] Iter:[10/46], Time: 1.16, lr: [0.0009997978777158568], Loss: 4.057936, Acc:0.068492
+Epoch: [0/968] Iter:[15/46], Time: 1.04, lr: [0.000999696814871247], Loss: 3.704406, Acc:0.087763
+Epoch: [0/968] Iter:[20/46], Time: 1.15, lr: [0.0009995957508914253], Loss: 3.476468, Acc:0.114709
+Epoch: [0/968] Iter:[25/46], Time: 1.08, lr: [0.0009994946857762508], Loss: 3.322426, Acc:0.144883
+Epoch: [0/968] Iter:[30/46], Time: 1.03, lr: [0.0009993936195255833], Loss: 3.140038, Acc:0.171489
+Epoch: [0/968] Iter:[35/46], Time: 1.00, lr: [0.0009992925521392824], Loss: 3.044816, Acc:0.190908
