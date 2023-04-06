@@ -115,9 +115,15 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
 def validate(config, testloader, model, writer_dict):
     model.eval()
     ave_loss = AverageMeter()
-    nums = config.MODEL.NUM_OUTPUTS
+
+    if config.LOSS.USE_DETAIL_LOSS:
+        nums = 1
+    else:
+        nums = config.MODEL.NUM_OUTPUTS
+
     confusion_matrix = np.zeros(
         (config.DATASET.NUM_CLASSES, config.DATASET.NUM_CLASSES, nums))
+
     with torch.no_grad():
         for idx, batch in enumerate(testloader):
             image, label,_,_ = batch
@@ -125,15 +131,19 @@ def validate(config, testloader, model, writer_dict):
             image = image.cuda()
             label = label.long().cuda()
 
-            losses, pred, _ = model(image, label,is_train=False)
+            losses, pred, _ = model(image, label, is_train=False)
+
+            if config.LOSS.USE_DETAIL_LOSS:
+                pred = pred[1]
+
             if not isinstance(pred, (list, tuple)):
                 pred = [pred]
+
             for i, x in enumerate(pred):
                 x = F.interpolate(
                     input=x, size=size[-2:],
                     mode='bilinear', align_corners=config.MODEL.ALIGN_CORNERS
                 )
-
                 confusion_matrix[..., i] += get_confusion_matrix(
                     label,
                     x,
