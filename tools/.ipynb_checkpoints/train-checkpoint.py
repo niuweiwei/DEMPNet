@@ -23,11 +23,8 @@ import torch.backends.cudnn as cudnn
 import torch.optim
 from tensorboardX import SummaryWriter
 
-<<<<<<< HEAD
-=======
 import pandas as pd
 
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 import _init_paths
 
 sys.path.append("./")
@@ -36,10 +33,7 @@ from lib.config import config
 from lib.config import update_config
 from lib.core.criterion import CrossEntropy, OhemCrossEntropy
 from lib.core.function import train, validate
-<<<<<<< HEAD
-=======
 from lib.core.detail_loss import DetailAggregateLoss
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 from lib.models import *
 from lib.datasets import *
 from lib.utils.utils import create_logger, FullModel
@@ -55,11 +49,7 @@ def parse_args():
                         help='experiment configure file name',
                         default=cfg_path,
                         type=str)
-<<<<<<< HEAD
-    parser.add_argument('--seed', type=int, default=30)
-=======
     parser.add_argument('--seed', type=int, default=34)
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     parser.add_argument("--local_rank", type=int, default=0)
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
@@ -95,15 +85,16 @@ def main():
     logger.info(pprint.pformat(args))
     logger.info(config)
 
-<<<<<<< HEAD
-=======
-
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     writer_dict = {
         'writer': SummaryWriter(tb_log_dir),
         'train_global_steps': 0,
         'valid_global_steps': 0,
     }
+
+    save_pth_path = os.path.join(final_output_dir, 'pths')
+    if not os.path.exists(save_pth_path):
+        os.makedirs(save_pth_path)
+
 
     # cudnn related setting
     cudnn.benchmark = config.CUDNN.BENCHMARK
@@ -229,18 +220,14 @@ def main():
     else:
         criterion = CrossEntropy(ignore_label=config.TRAIN.IGNORE_LABEL,
                                     weight=train_dataset.class_weights)
-<<<<<<< HEAD
-        
-
-    model = FullModel(model, criterion)
-=======
 
     if config.LOSS.USE_DETAIL_LOSS:
-        model = FullModel(model, criterion, True, DetailAggregateLoss(), config.LOSS.BALANCE_WEIGHTS[1])
+        # model = FullModel(model, criterion, True, DetailAggregateLoss(), config.LOSS.BALANCE_WEIGHTS[1])
+        model = FullModel(model, criterion, True, DetailAggregateLoss(), boundary_weight= config.LOSS.BOUNDARY_WEIGHTS)
+
     else:
         model = FullModel(model, criterion, False)
 
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     if distributed:
         model = model.to(device)
         model = torch.nn.parallel.DistributedDataParallel(
@@ -305,18 +292,6 @@ def main():
     end_epoch = config.TRAIN.END_EPOCH + config.TRAIN.EXTRA_EPOCH
     num_iters = config.TRAIN.END_EPOCH * epoch_iters
     extra_iters = config.TRAIN.EXTRA_EPOCH * extra_epoch_iters
-<<<<<<< HEAD
-    
-    for epoch in range(last_epoch, end_epoch):
-
-        current_trainloader = extra_trainloader if epoch >= config.TRAIN.END_EPOCH else trainloader
-        if current_trainloader.sampler is not None and hasattr(current_trainloader.sampler, 'set_epoch'):
-            current_trainloader.sampler.set_epoch(epoch)
-
-        # valid_loss, mean_IoU, IoU_array = validate(config, 
-        #         testloader, model, writer_dict)
-
-=======
 
     train_log = OrderedDict([
         ('epoch', []),
@@ -337,36 +312,31 @@ def main():
         if current_trainloader.sampler is not None and hasattr(current_trainloader.sampler, 'set_epoch'):
             current_trainloader.sampler.set_epoch(epoch)
 
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         if epoch >= config.TRAIN.END_EPOCH:
             train(config, epoch-config.TRAIN.END_EPOCH,
                   config.TRAIN.EXTRA_EPOCH, extra_epoch_iters,
                   config.TRAIN.EXTRA_LR, extra_iters, 
-<<<<<<< HEAD
-                  extra_trainloader, optimizer, model, writer_dict)
-        else:
-            train(config, epoch, config.TRAIN.END_EPOCH, 
-                  epoch_iters, config.TRAIN.LR, num_iters,
-                  trainloader, optimizer, model, writer_dict)
-
-        if((epoch <= 200 and epoch % 10 == 0) or (epoch > 200 and epoch <= 400 and epoch % 5 == 0) or (epoch > 400 and epoch <= 450 and epoch % 2 == 0) or (epoch > 450) ):
-            valid_loss, mean_IoU, IoU_array = validate(config,testloader, model, writer_dict)
-=======
                   extra_trainloader, optimizer, model, writer_dict, train_log)
         else:
             train(config, epoch, config.TRAIN.END_EPOCH, 
                   epoch_iters, config.TRAIN.LR, num_iters,
                   trainloader, optimizer, model, writer_dict, train_log)
 
-        pd.DataFrame(train_log).to_csv('%s/train_log.csv' % final_output_dir, index=False, float_format='%.3f')
+        pd.DataFrame(train_log).to_csv('%s/train_log.csv' % final_output_dir, index=False, float_format='%.5f')
 
         if((epoch <= 200 and epoch % 10 == 0) or (epoch > 200 and epoch <= 400 and epoch % 5 == 0) or (epoch > 400 and epoch <= 450 and epoch % 2 == 0) or (epoch > 450) ):
             valid_loss, mean_IoU, IoU_array = validate(config,testloader, model, writer_dict)
             validate_log['epoch'].append(epoch + 1)
             validate_log['val_loss'].append(valid_loss)
             validate_log['val_iou'].append(mean_IoU)
-            pd.DataFrame(validate_log).to_csv('%s/val_log.csv' % final_output_dir, index=False, float_format='%.3f')
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
+            pd.DataFrame(validate_log).to_csv('%s/val_log.csv' % final_output_dir, index=False, float_format='%.5f')
+            # 保存权重
+            save_pth = os.path.join(save_pth_path, 'train_epoch{}_mIOU_{}.pth').format(epoch + 1, str(round(mean_IoU,4)))
+            state = model.module.state_dict() if hasattr(model, 'module') else model.state_dict()
+            if args.local_rank == 0:
+
+                torch.save(state, save_pth)
+            logger.info('model saved to: {}'.format(save_pth))
 
         if args.local_rank <= 0:
             logger.info('=> saving checkpoint to {}'.format(

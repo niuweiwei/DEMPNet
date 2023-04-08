@@ -222,12 +222,9 @@ def main():
                                     weight=train_dataset.class_weights)
 
     if config.LOSS.USE_DETAIL_LOSS:
-<<<<<<< HEAD
         # model = FullModel(model, criterion, True, DetailAggregateLoss(), config.LOSS.BALANCE_WEIGHTS[1])
         model = FullModel(model, criterion, True, DetailAggregateLoss(), boundary_weight= config.LOSS.BOUNDARY_WEIGHTS)
-=======
-        model = FullModel(model, criterion, True, DetailAggregateLoss(), config.LOSS.BALANCE_WEIGHTS[1])
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
+
     else:
         model = FullModel(model, criterion, False)
 
