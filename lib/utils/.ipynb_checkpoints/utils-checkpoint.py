@@ -26,10 +26,17 @@ class FullModel(nn.Module):
   You can check the following discussion.
   https://discuss.pytorch.org/t/dataparallel-imbalanced-memory-usage/22551/21
   """
-  def __init__(self, model, loss):
+
+  def __init__(self, model, loss, is_detail=False, boundary_loss=None, boundary_weight=0.0):
+
     super(FullModel, self).__init__()
     self.model = model
     self.loss = loss
+    self.is_detail = is_detail
+    if self.is_detail:
+        self.boundary_loss = boundary_loss
+        self.boundary_weight = boundary_weight
+
 
   def pixel_acc(self, pred, label):
     if pred.shape[2] != label.shape[1] and pred.shape[3] != label.shape[2]:
@@ -41,11 +48,21 @@ class FullModel(nn.Module):
     acc = acc_sum.float() / (pixel_sum.float() + 1e-10)
     return acc
 
-  def forward(self, inputs, labels, *args, **kwargs):
-    outputs = self.model(inputs, *args, **kwargs)
+  def forward(self, inputs, labels, is_train, *args, **kwargs):
+
+    outputs, boundary = self.model(inputs, *args, **kwargs)
+    
     loss = self.loss(outputs, labels)
+    loss = torch.unsqueeze(loss, 0)
+
+    if self.is_detail:       
+        if is_train:
+            boundary_bce_loss, boundary_dice_loss = self.boundary_loss(boundary, labels)
+            loss = loss + self.boundary_weight * (boundary_dice_loss + boundary_bce_loss)
+
     acc  = self.pixel_acc(outputs[1], labels)
-    return torch.unsqueeze(loss,0), outputs, acc
+
+    return loss, outputs, acc
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
@@ -91,16 +108,22 @@ def create_logger(cfg, cfg_name, phase='train'):
 
     dataset = cfg.DATASET.DATASET
     model = cfg.MODEL.NAME
+
+
     cfg_name = os.path.basename(cfg_name).split('.')[0]
 
-    final_output_dir = root_output_dir / dataset / cfg_name
+    time_str = time.strftime('%Y-%m-%d-%H-%M')
+    log_dir = '{}_{}_{}'.format(cfg_name, time_str, phase)
+
+    final_output_dir = root_output_dir / dataset / log_dir
 
     print('=> creating {}'.format(final_output_dir))
     final_output_dir.mkdir(parents=True, exist_ok=True)
 
-    time_str = time.strftime('%Y-%m-%d-%H-%M')
-    log_file = '{}_{}_{}.log'.format(cfg_name, time_str, phase)
+    log_file = 'train_console_log'
     final_log_file = final_output_dir / log_file
+
+
     head = '%(asctime)-15s %(message)s'
     logging.basicConfig(filename=str(final_log_file),
                         format=head)
@@ -109,8 +132,10 @@ def create_logger(cfg, cfg_name, phase='train'):
     console = logging.StreamHandler()
     logging.getLogger('').addHandler(console)
 
-    tensorboard_log_dir = Path(cfg.LOG_DIR) / dataset / model / \
-            (cfg_name + '_' + time_str)
+    tensorboard_log_path = 'tensorboard_log'
+    tensorboard_log_dir = final_output_dir / tensorboard_log_path
+    # tensorboard_log_dir = Path(cfg.LOG_DIR) / dataset / model / \
+    #         (cfg_name + '_' + time_str)
     print('=> creating {}'.format(tensorboard_log_dir))
     tensorboard_log_dir.mkdir(parents=True, exist_ok=True)
 
@@ -121,7 +146,13 @@ def get_confusion_matrix(label, pred, size, num_class, ignore=-1):
     Calcute the confusion matrix by given label and pred
     """
     output = pred.cpu().numpy().transpose(0, 2, 3, 1)
+<<<<<<< HEAD
+
     seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
+
+=======
+    seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     seg_gt = np.asarray(
     label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int)
 

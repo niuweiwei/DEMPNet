@@ -23,27 +23,17 @@ LOSS:
   USE_OHEM: true
   OHEMTHRES: 0.9
   OHEMKEEP: 131072
-<<<<<<< HEAD
   BALANCE_WEIGHTS: [1,0.4]
   BOUNDARY_WEIGHTS: 1.0
-  USE_DETAIL_LOSS: false
-  USE_AUGMENT: true
-=======
-  BALANCE_WEIGHTS: [1,1]
   USE_DETAIL_LOSS: true
-  USE_AUGMENT: false
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
+  USE_AUGMENT: true
 
 TRAIN:
   IMAGE_SIZE:
   - 1024
   - 1024
   BASE_SIZE: 2048
-<<<<<<< HEAD
   BATCH_SIZE_PER_GPU: 8
-=======
-  BATCH_SIZE_PER_GPU: 16
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
   SHUFFLE: true
   BEGIN_EPOCH: 0
   END_EPOCH: 500
@@ -69,9 +59,5 @@ TEST:
   SCALE_LIST: [1]
 
   #0.5,0.75,1.0,1.25,1.5,1.75
-<<<<<<< HEAD
-  MODEL_FILE: "pretrained_models/best.pth"
-=======
   MODEL_FILE: "pretrained_models/DDRNet23s_cityscapes.pth"
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
   OUTPUT_INDEX: 1
