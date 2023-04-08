@@ -88,22 +88,14 @@ class OhemCrossEntropy(nn.Module):
         return pixel_losses.mean()
 
     def forward(self, score, target):
-
-<<<<<<< HEAD
-        if config.MODEL.NUM_OUTPUTS == 1 or (config.LOSS.USE_DETAIL_LOSS and not config.LOSS.USE_AUGMENT):
+        if config.MODEL.NUM_OUTPUTS == 1:
             score = [score]
 
         weights = config.LOSS.BALANCE_WEIGHTS
-        if config.LOSS.USE_DETAIL_LOSS and not config.LOSS.USE_AUGMENT:
-=======
-        if config.MODEL.NUM_OUTPUTS == 1 or config.LOSS.USE_DETAIL_LOSS:
+
+        if config.MODEL.NUM_OUTPUTS == 1:
             score = [score]
 
-        weights = config.LOSS.BALANCE_WEIGHTS
-        if config.LOSS.USE_DETAIL_LOSS:
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
-            weights = weights[0]
-            weights = [weights]
         assert len(weights) == len(score)
 
         functions = [self._ce_forward] * \

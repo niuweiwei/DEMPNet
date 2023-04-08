@@ -88,11 +88,14 @@ class OhemCrossEntropy(nn.Module):
         return pixel_losses.mean()
 
     def forward(self, score, target):
-
         if config.MODEL.NUM_OUTPUTS == 1:
             score = [score]
 
         weights = config.LOSS.BALANCE_WEIGHTS
+
+        if config.MODEL.NUM_OUTPUTS == 1:
+            score = [score]
+
         assert len(weights) == len(score)
 
         functions = [self._ce_forward] * \
@@ -101,4 +104,5 @@ class OhemCrossEntropy(nn.Module):
             w * func(x, target)
             for (w, x, func) in zip(weights, score, functions)
         ])
+
 
