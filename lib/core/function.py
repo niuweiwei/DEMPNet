@@ -116,7 +116,11 @@ def validate(config, testloader, model, writer_dict):
     model.eval()
     ave_loss = AverageMeter()
 
+<<<<<<< HEAD
     if config.LOSS.USE_DETAIL_LOSS and not config.LOSS.USE_AUGMENT:
+=======
+    if config.LOSS.USE_DETAIL_LOSS:
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         nums = 1
     else:
         nums = config.MODEL.NUM_OUTPUTS
@@ -133,7 +137,11 @@ def validate(config, testloader, model, writer_dict):
 
             losses, pred, _ = model(image, label, is_train=False)
 
+<<<<<<< HEAD
             if config.LOSS.USE_DETAIL_LOSS and not config.LOSS.USE_AUGMENT:
+=======
+            if config.LOSS.USE_DETAIL_LOSS:
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
                 pred = pred[1]
 
             if not isinstance(pred, (list, tuple)):
@@ -187,7 +195,10 @@ def validate(config, testloader, model, writer_dict):
 def testval(config, test_dataset, testloader, model,
             sv_dir='', sv_pred=False):
     model.eval()
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     confusion_matrix = np.zeros(
         (config.DATASET.NUM_CLASSES, config.DATASET.NUM_CLASSES))
 

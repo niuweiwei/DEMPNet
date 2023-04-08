@@ -414,7 +414,11 @@ class DualResNet(nn.Module):
         if self.augment:
             self.seghead_extra = segmenthead(highres_planes, head_planes, num_classes)
         if self.detail:
+<<<<<<< HEAD
             self.seghead_boundary = segmenthead(highres_planes, head_planes, 1)
+=======
+            self.seghead_extra = segmenthead(highres_planes, head_planes, 1)
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 
         self.ffm = FeatureFusionModule(256,128)
         
@@ -457,13 +461,20 @@ class DualResNet(nn.Module):
         layers.append(x)
 
         if self.detail:
+<<<<<<< HEAD
             boundary = x
+=======
+            temp = x
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 
         x = self.layer3(self.relu(x)) # conv4-low-resolution (B,128,H/16,W/16) layers[2]
 
         layers.append(x)
         x_ = self.layer3_(self.relu(layers[1])) # conv4-high-resolution (B,64,H/8,W/8)
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         x_ = x_ + self.spatial_attention(x_)
        
 
@@ -505,6 +516,7 @@ class DualResNet(nn.Module):
         # x_ = self.final_layer(x + x_) # x(B,128,H/8,W/8)+x_(B,128,H/8,W/8)->final_layer(B,128,H/8,W/8)->(B,num_classes,H/8,W/8)
         x_ = self.final_layer(x_fusion)
 
+<<<<<<< HEAD
         if self.detail:
             x_boundary = self.seghead_boundary(boundary)
         if self.augment:
@@ -516,6 +528,12 @@ class DualResNet(nn.Module):
             return [x_boundary,x_]
         elif not self.detail and self.augment:
             return [x_extra,x_]
+=======
+
+        if self.augment or self.detail:
+            x_extra = self.seghead_extra(temp)
+            return [x_extra, x_]
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         else:
             return x_
 
@@ -529,11 +547,22 @@ class DualResNet(nn.Module):
 def DualResNet_imagenet(cfg, pretrained=False):
 
     is_detail = cfg.LOSS.USE_DETAIL_LOSS
+<<<<<<< HEAD
     is_augment = cfg.LOSS.USE_AUGMENT
 
     model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=cfg.DATASET.NUM_CLASSES, planes=32, spp_planes=128, head_planes=64, augment=is_augment, detail=is_detail)
     if pretrained:
         root = os.path.abspath(os.path.join(os.getcwd()))
+=======
+    if is_detail: # detail：true  augment:false
+        is_augment = False
+    else: # detail: false augment:可能是true 也可能是false
+        is_augment = cfg.LOSS.USE_AUGMENT
+
+    model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=cfg.DATASET.NUM_CLASSES, planes=32, spp_planes=128, head_planes=64, augment=is_augment, detail=is_detail)
+    if pretrained:
+        root = os.path.abspath(os.getcwd())
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         pretrained_path = os.path.join(root,cfg.MODEL.PRETRAINED)
         pretrained_state = torch.load(pretrained_path, map_location='cpu')
         model_dict = model.state_dict()

@@ -349,11 +349,19 @@ class FeatureFusionModule(nn.Module):
 
 class DualResNet(nn.Module):
 
+<<<<<<< HEAD
     def __init__(self, block, layers, num_classes=19, planes=64, spp_planes=128, head_planes=128, augment=True):
+=======
+    def __init__(self, block, layers, num_classes=19, planes=64, spp_planes=128, head_planes=128, augment=True, detail = False):
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         super(DualResNet, self).__init__()
         #planes=32 spp_planes=128 head_planes=64
         highres_planes = planes * 2
         self.augment = augment
+<<<<<<< HEAD
+=======
+        self.detail = detail
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 
         self.conv1 =  nn.Sequential(
                           nn.Conv2d(3,planes,kernel_size=3, stride=2, padding=1),
@@ -411,7 +419,13 @@ class DualResNet(nn.Module):
         self.spatial_attention = SpatialAttention(kernel_size=3)
 
         if self.augment:
+<<<<<<< HEAD
             self.seghead_extra = segmenthead(highres_planes, head_planes, num_classes)            
+=======
+            self.seghead_extra = segmenthead(highres_planes, head_planes, num_classes)
+        if self.detail:
+            self.seghead_extra = segmenthead(highres_planes, head_planes, 1)
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 
         self.ffm = FeatureFusionModule(256,128)
         
@@ -452,10 +466,17 @@ class DualResNet(nn.Module):
 
         x = self.layer2(self.relu(x)) # conv3 (B,64,H/8,W/8) layers[1]
         layers.append(x)
+<<<<<<< HEAD
         
         if self.augment:
             feat8 = x
   
+=======
+
+        if self.detail:
+            temp = x
+
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         x = self.layer3(self.relu(x)) # conv4-low-resolution (B,128,H/16,W/16) layers[2]
 
         layers.append(x)
@@ -468,8 +489,14 @@ class DualResNet(nn.Module):
                         self.compression3(self.relu(layers[2])),
                         size=[height_output, width_output],
                         mode='bilinear')   # conv4 low-to-high (B,128,H/16,W/16)[compression3]->(B,64,H/16,W/16)[F.interpolate]->(B,64,H/8,W/8)
+<<<<<<< HEAD
         # if self.augment:
         #     temp = x_
+=======
+
+        if self.augment:
+            temp = x_
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 
         x = self.layer4(self.relu(x)) # conv5-low-resolution (B,256,H/32,W/32) (BasicBlock)
 
@@ -497,6 +524,7 @@ class DualResNet(nn.Module):
         # low-resolution x : (B,128,H/8,W/8)    high-resolution x_ : _(B,128,H/8,W/8)
         x_fusion = self.ffm(x_,x)
 
+<<<<<<< HEAD
       
 
         # x_ = self.final_layer(x + x_) # x(B,128,H/8,W/8)+x_(B,128,H/8,W/8)->final_layer(B,128,H/8,W/8)->(B,num_classes,H/8,W/8)
@@ -506,6 +534,15 @@ class DualResNet(nn.Module):
             # x_extra = self.seghead_extra(temp)
             # return [x_extra, x_]
             return feat8, x_
+=======
+        # x_ = self.final_layer(x + x_) # x(B,128,H/8,W/8)+x_(B,128,H/8,W/8)->final_layer(B,128,H/8,W/8)->(B,num_classes,H/8,W/8)
+        x_ = self.final_layer(x_fusion)
+
+
+        if self.augment or self.detail:
+            x_extra = self.seghead_extra(temp)
+            return [x_extra, x_]
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         else:
             return x_
 
@@ -518,7 +555,17 @@ class DualResNet(nn.Module):
 
 def DualResNet_imagenet(cfg, pretrained=False):
 
+<<<<<<< HEAD
     model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=cfg.DATASET.NUM_CLASSES, planes=32, spp_planes=128, head_planes=64, augment=True)
+=======
+    is_detail = cfg.LOSS.USE_DETAIL_LOSS
+    if is_detail: # detail：true  augment:false
+        is_augment = False
+    else: # detail: false augment:可能是true 也可能是false
+        is_augment = cfg.LOSS.USE_AUGMENT
+
+    model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=cfg.DATASET.NUM_CLASSES, planes=32, spp_planes=128, head_planes=64, augment=is_augment, detail=is_detail)
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     if pretrained:
         root = os.path.abspath(os.getcwd())
         pretrained_path = os.path.join(root,cfg.MODEL.PRETRAINED)

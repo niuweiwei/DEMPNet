@@ -26,14 +26,24 @@ class FullModel(nn.Module):
   You can check the following discussion.
   https://discuss.pytorch.org/t/dataparallel-imbalanced-memory-usage/22551/21
   """
+<<<<<<< HEAD
   def __init__(self, model, loss, is_detail=False, boundary_loss=None, boundary_weight=0.0):
+=======
+  def __init__(self, model, loss, is_detail=False, boundary_loss=None, weight=0.0):
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     super(FullModel, self).__init__()
     self.model = model
     self.loss = loss
     self.is_detail = is_detail
+<<<<<<< HEAD
     if self.is_detail:
         self.boundary_loss = boundary_loss
         self.boundary_weight = boundary_weight
+=======
+    if(self.is_detail):
+        self.boundary_loss = boundary_loss
+        self.weight = weight
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 
   def pixel_acc(self, pred, label):
     if pred.shape[2] != label.shape[1] and pred.shape[3] != label.shape[2]:
@@ -46,8 +56,12 @@ class FullModel(nn.Module):
     return acc
 
   def forward(self, inputs, labels, is_train, *args, **kwargs):
+<<<<<<< HEAD
     outputs, boundary = self.model(inputs, *args, **kwargs)
 
+=======
+    outputs = self.model(inputs, *args, **kwargs)
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     if self.is_detail:
         lossp = self.loss(outputs[1], labels)
         if is_train:
@@ -59,6 +73,7 @@ class FullModel(nn.Module):
         loss = self.loss(outputs, labels)
         loss= torch.unsqueeze(loss,0)
 
+<<<<<<< HEAD
     # [辅助损失头,最终分割头]+边界损失头
     # lossp = self.loss(outputs, labels)
     # loss = torch.unsqueeze(lossp, 0)
@@ -69,6 +84,9 @@ class FullModel(nn.Module):
     #         loss = loss + self.boundary_weight * (boundery_dice_loss + boundery_bce_loss)
 
     acc = self.pixel_acc(outputs[1], labels)
+=======
+    acc  = self.pixel_acc(outputs[1], labels)
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
 
     return loss, outputs, acc
 
@@ -154,9 +172,13 @@ def get_confusion_matrix(label, pred, size, num_class, ignore=-1):
     Calcute the confusion matrix by given label and pred
     """
     output = pred.cpu().numpy().transpose(0, 2, 3, 1)
+<<<<<<< HEAD
 
     seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
 
+=======
+    seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
+>>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     seg_gt = np.asarray(
     label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int)
 
