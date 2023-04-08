@@ -54,10 +54,8 @@ _C.LOSS.CLASS_BALANCE = False
 _C.LOSS.BALANCE_WEIGHTS = [0.5, 0.5]
 _C.LOSS.USE_DETAIL_LOSS = False
 _C.LOSS.USE_AUGMENT = True
-<<<<<<< HEAD
 _C.LOSS.BOUNDARY_WEIGHTS = 1.0
-=======
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
+
 
 # DATASET related params
 _C.DATASET = CN()
