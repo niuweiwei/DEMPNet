@@ -146,13 +146,10 @@ def get_confusion_matrix(label, pred, size, num_class, ignore=-1):
     Calcute the confusion matrix by given label and pred
     """
     output = pred.cpu().numpy().transpose(0, 2, 3, 1)
-<<<<<<< HEAD
 
     seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
 
-=======
-    seg_pred = np.asarray(np.argmax(output, axis=3), dtype=np.uint8)
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
+
     seg_gt = np.asarray(
     label.cpu().numpy()[:, :size[-2], :size[-1]], dtype=np.int)
 
