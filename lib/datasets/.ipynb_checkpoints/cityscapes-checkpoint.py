@@ -34,7 +34,9 @@ class Cityscapes(BaseDataset):
         super(Cityscapes, self).__init__(ignore_label, base_size,
                 crop_size, downsample_rate, scale_factor, mean, std,)
 
+
         project_path = os.path.abspath(os.path.join(os.getcwd(),'..','..'))
+
         self.root = os.path.join(project_path,root)
 
         self.list_path = list_path
@@ -124,8 +126,11 @@ class Cityscapes(BaseDataset):
 
     def multi_scale_inference(self, config, model, image, scales=[1], flip=False):
         batch, _, ori_height, ori_width = image.size()
+
         assert batch == 1, "only supporting batchsize 1."
         image = image.numpy()[0].transpose((1,2,0)).copy()
+
+
         stride_h = np.int(self.crop_size[0] * 1.0)
         stride_w = np.int(self.crop_size[1] * 1.0)
         final_pred = torch.zeros([1, self.num_classes,
