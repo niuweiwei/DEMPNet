@@ -387,6 +387,47 @@ class AFF(nn.Module):
         return xo
 
 
+class EnhancedFeatureFusion(nn.Module):
+
+    def __init__(self,in_chan, out_chan):
+        super(EnhancedFeatureFusion, self).__init__()
+        self.convblk = ConvBNReLU(in_chan, out_chan, ks=1, stride=1, padding=0)
+
+        self.global_att = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(out_chan, out_chan // 4, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(out_chan // 4),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_chan // 4, out_chan, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(out_chan),
+        )
+
+        self.local_att = nn.Sequential(
+            nn.Conv2d(out_chan, out_chan // 4, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(out_chan // 4),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_chan // 4, out_chan, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(out_chan),
+        )
+
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self,feat_sp,feat_cp):
+        fcat = torch.cat([feat_sp, feat_cp], dim=1)
+        feat = self.convblk(fcat)
+
+        x_global = self.global_att(feat)
+        x_local = self.local_att(feat)
+
+        attn = x_global + x_local
+        weight = self.sigmoid(attn)
+        feat_attn = torch.mul(feat,weight)
+
+        feat_out = feat + feat_attn
+        return feat_out
+
+
+
 
 
 class DualResNet(nn.Module):
