@@ -50,6 +50,8 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
     batch_time = AverageMeter()
     ave_loss = AverageMeter()
     ave_acc  = AverageMeter()
+    ave_boundary_bce_loss = AverageMeter()
+    ave_boundary_dice_loss = AverageMeter()
 
     nums = config.MODEL.NUM_OUTPUTS
     confusion_matrix = np.zeros(
@@ -79,6 +81,8 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
 
         if dist.is_distributed():
             reduced_loss = reduce_tensor(loss)
+            boundary_bce_loss = reduced_loss(boundary_bce_loss)
+            boundary_dice_loss = reduced_loss(boundary_dice_loss)
         else:
             reduced_loss = loss
 
@@ -93,6 +97,8 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
         # update average loss
         ave_loss.update(reduced_loss.item())
         ave_acc.update(acc.item())
+        ave_boundary_bce_loss.update(boundary_bce_loss.item())
+        ave_boundary_dice_loss.update(boundary_dice_loss)
 
         lr = adjust_learning_rate(optimizer,
                                   base_lr,
@@ -113,7 +119,8 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
                     epoch, num_epoch, i_iter, epoch_iters,
                     batch_time.average(), [x['lr'] for x in optimizer.param_groups], ave_loss.average(),
                     ave_acc.average(),
-                    boundary_bce_loss, boundary_dice_loss)
+                    ave_boundary_bce_loss.average(),
+                    ave_boundary_dice_loss.average())
             logging.info(msg)
 
     writer.add_scalar('train_loss', ave_loss.average(), global_steps)
@@ -125,8 +132,8 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
     train_log['train_loss'].append(ave_loss.average())
     train_log['pixel_accuracy'].append(ave_acc.average())
     if detail:
-        train_log['boundary_bce_loss'].append(boundary_bce_loss)
-        train_log['boundary_dice_loss'].append(boundary_dice_loss)
+        train_log['boundary_bce_loss'].append(ave_boundary_bce_loss.average())
+        train_log['boundary_dice_loss'].append(ave_boundary_dice_loss.average())
 
 
 def validate(config, testloader, model, writer_dict):
