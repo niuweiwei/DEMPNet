@@ -2,6 +2,7 @@ import math
 import os.path
 
 import torch
+import cv2 as cv
 import numpy as np 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -553,7 +554,30 @@ def get_seg_model(cfg, **kwargs):
 
 
 if __name__ == '__main__':
-    x = torch.rand(4, 3, 800, 800)
-    net = DualResNet_imagenet(pretrained=False)
-    y = net(x)
-    print(y.shape)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=19, planes=32, spp_planes=128,head_planes=64, augment=True, detail=True)
+    model_state_file = "../../pretrained_models/best.pth"
+    model = model.to(device)
+    model.eval()
+    print('=> loading model from {}'.format(model_state_file))
+    pretrained_dict = torch.load(model_state_file)
+    if 'state_dict' in pretrained_dict:
+        pretrained_dict = pretrained_dict['state_dict']
+    model_dict = model.state_dict()
+    pretrained_dict = {k[6:]: v for k, v in pretrained_dict.items()
+                       if k[6:] in model_dict.keys()}
+    for k, _ in pretrained_dict.items():
+        print('=> loading {} from pretrained model'.format(k))
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
+
+    img_path = "../../images/test.png"
+    img = cv.imread(img_path)
+    img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+    img = cv.resize(img, (512, 512))
+    img_ = torch.from_numpy(img).float().permute(2, 0, 1).unsqueeze(0)/255
+    img_ = img_.to(device)
+    outputs1 = model(img_)
+    outputs2 = model(img_)
+    print((outputs1[1]-outputs2[1]))
+
