@@ -537,11 +537,6 @@ def DualResNet_imagenet(cfg, pretrained=False):
 
     model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=cfg.DATASET.NUM_CLASSES, planes=32, spp_planes=128, head_planes=64, augment=is_augment, detail=is_detail)
     if pretrained:
-        root = os.path.abspath(os.path.join(os.getcwd()))
-
-
-    model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=cfg.DATASET.NUM_CLASSES, planes=32, spp_planes=128, head_planes=64, augment=is_augment, detail=is_detail)
-    if pretrained:
         root = os.path.abspath(os.getcwd())
         pretrained_path = os.path.join(root,cfg.MODEL.PRETRAINED)
         pretrained_state = torch.load(pretrained_path, map_location='cpu')

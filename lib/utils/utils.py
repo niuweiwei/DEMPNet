@@ -49,20 +49,22 @@ class FullModel(nn.Module):
     return acc
 
   def forward(self, inputs, labels, is_train, *args, **kwargs):
-
-    outputs, boundary = self.model(inputs, *args, **kwargs)
+    if self.is_detail:
+        outputs, boundary = self.model(inputs, *args, **kwargs)
+    else:
+        outputs = self.model(inputs, *args, **kwargs)
     
     loss = self.loss(outputs, labels)
     loss = torch.unsqueeze(loss, 0)
 
+    acc = self.pixel_acc(outputs[1], labels)
     if self.is_detail:       
         if is_train:
             boundary_bce_loss, boundary_dice_loss = self.boundary_loss(boundary, labels)
             loss = loss + self.boundary_weight * (boundary_dice_loss + boundary_bce_loss)
-
-    acc  = self.pixel_acc(outputs[1], labels)
-
-    return loss, outputs, acc
+            return loss, boundary_bce_loss, boundary_dice_loss, outputs, acc
+    else:
+        return loss, outputs, acc
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""

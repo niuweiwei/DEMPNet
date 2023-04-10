@@ -228,6 +228,8 @@ def main():
     else:
         model = FullModel(model, criterion, False)
 
+
+
     if distributed:
         model = model.to(device)
         model = torch.nn.parallel.DistributedDataParallel(
@@ -320,7 +322,7 @@ def main():
         else:
             train(config, epoch, config.TRAIN.END_EPOCH, 
                   epoch_iters, config.TRAIN.LR, num_iters,
-                  trainloader, optimizer, model, writer_dict, train_log)
+                  trainloader, optimizer, model, writer_dict, train_log,config.LOSS.USE_DETAIL_LOSS)
 
         pd.DataFrame(train_log).to_csv('%s/train_log.csv' % final_output_dir, index=False, float_format='%.5f')
 

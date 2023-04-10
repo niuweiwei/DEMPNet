@@ -43,7 +43,7 @@ def reduce_tensor(inp):
 
 
 def train(config, epoch, num_epoch, epoch_iters, base_lr,
-          num_iters, trainloader, optimizer, model, writer_dict, train_log):
+          num_iters, trainloader, optimizer, model, writer_dict, train_log, detail):
     # Training
     model.train()
 
@@ -66,7 +66,13 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
         labels = labels.long().cuda()
         size = labels.size()
 
-        losses, _, acc = model(images, labels,is_train=True)
+        if not detail:
+            losses, _, acc = model(images, labels,is_train=True)
+        if detail:
+            losses, boundary_bce_loss, boundary_dice_loss, _, acc = model(images, labels,is_train=True)
+            boundary_bce_loss = boundary_bce_loss.mean()
+            boundary_dice_loss = boundary_dice_loss.mean()
+
 
         loss = losses.mean()
         acc  = acc.mean()
@@ -95,11 +101,19 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
 
 
         if i_iter % config.PRINT_FREQ == 0 and dist.get_rank() == 0:
-            msg = 'Epoch: [{}/{}] Iter:[{}/{}], Time: {:.2f}, ' \
-                  'lr: {}, Loss: {:.6f}, Acc:{:.6f}' .format(
-                      epoch, num_epoch, i_iter, epoch_iters,
-                      batch_time.average(), [x['lr'] for x in optimizer.param_groups], ave_loss.average(),
-                      ave_acc.average())
+            if not detail:
+                msg = 'Epoch: [{}/{}] Iter:[{}/{}], Time: {:.2f}, ' \
+                    'lr: {}, Loss: {:.6f}, Acc:{:.6f}' .format(
+                        epoch, num_epoch, i_iter, epoch_iters,
+                        batch_time.average(), [x['lr'] for x in optimizer.param_groups], ave_loss.average(),
+                        ave_acc.average())
+            else:
+                msg = 'Epoch: [{}/{}] Iter:[{}/{}], Time: {:.2f}, ' \
+                      'lr: {}, Loss: {:.6f}, Acc:{:.6f}, Boundary_bce_loss: {:.6f}, Boundary_dice_loss:{:.6f}'.format(
+                    epoch, num_epoch, i_iter, epoch_iters,
+                    batch_time.average(), [x['lr'] for x in optimizer.param_groups], ave_loss.average(),
+                    ave_acc.average(),
+                    boundary_bce_loss, boundary_dice_loss)
             logging.info(msg)
 
     writer.add_scalar('train_loss', ave_loss.average(), global_steps)
@@ -110,6 +124,9 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
     train_log['lr'].append(lr)
     train_log['train_loss'].append(ave_loss.average())
     train_log['pixel_accuracy'].append(ave_acc.average())
+    if detail:
+        train_log['boundary_bce_loss'].append(boundary_bce_loss)
+        train_log['boundary_dice_loss'].append(boundary_dice_loss)
 
 
 def validate(config, testloader, model, writer_dict):
