@@ -348,6 +348,47 @@ class FeatureFusionModule(nn.Module):
 
 
 
+class AFF(nn.Module):
+    '''
+    多特征融合 AFF
+    '''
+
+    def __init__(self, channels=64, r=4):
+        super(AFF, self).__init__()
+        inter_channels = int(channels // r)
+
+        self.local_att = nn.Sequential(
+            nn.Conv2d(channels, inter_channels, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(inter_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(inter_channels, channels, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(channels),
+        )
+
+        self.global_att = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(channels, inter_channels, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(inter_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(inter_channels, channels, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(channels),
+        )
+
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x, residual):
+        xa = x + residual
+        xl = self.local_att(xa)
+        xg = self.global_att(xa)
+        xlg = xl + xg
+        wei = self.sigmoid(xlg)
+
+        xo = 2 * x * wei + 2 * residual * (1 - wei)
+        return xo
+
+
+
+
 class DualResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=19, planes=64, spp_planes=128, head_planes=128, augment=True, detail = False):
@@ -419,6 +460,8 @@ class DualResNet(nn.Module):
 
 
         self.ffm = FeatureFusionModule(256,128)
+
+        self.aff = AFF(128,4)
         
         self.final_layer = segmenthead(planes * 4, head_planes, num_classes)
 
@@ -503,7 +546,8 @@ class DualResNet(nn.Module):
 
         # low-resolution与 high-resolution最终的输出通过 FFM模块进行融合
         # low-resolution x : (B,128,H/8,W/8)    high-resolution x_ : _(B,128,H/8,W/8)
-        x_fusion = self.ffm(x_,x)
+        # x_fusion = self.ffm(x_,x)
+        x_fusion = self.aff(x_,x)
 
         # x_ = self.final_layer(x + x_) # x(B,128,H/8,W/8)+x_(B,128,H/8,W/8)->final_layer(B,128,H/8,W/8)->(B,num_classes,H/8,W/8)
         x_ = self.final_layer(x_fusion)
