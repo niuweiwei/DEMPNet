@@ -63,8 +63,8 @@ class FullModel(nn.Module):
             boundary_bce_loss, boundary_dice_loss = self.boundary_loss(boundary, labels)
             loss = loss + self.boundary_weight * (boundary_dice_loss + boundary_bce_loss)
             return loss, boundary_bce_loss, boundary_dice_loss, outputs, acc
-    else:
-        return loss, outputs, acc
+
+    return loss, outputs, acc
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
