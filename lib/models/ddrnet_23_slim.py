@@ -387,6 +387,7 @@ class AFF(nn.Module):
         return xo
 
 
+
 class EnhancedFeatureFusion(nn.Module):
 
     def __init__(self,in_chan, out_chan):
@@ -503,7 +504,9 @@ class DualResNet(nn.Module):
         self.ffm = FeatureFusionModule(256,128)
 
         self.aff = AFF(128,4)
-        
+
+        self.effm = EnhancedFeatureFusion(256,128)
+
         self.final_layer = segmenthead(planes * 4, head_planes, num_classes)
 
         self.init_weight()
@@ -588,7 +591,8 @@ class DualResNet(nn.Module):
         # low-resolution与 high-resolution最终的输出通过 FFM模块进行融合
         # low-resolution x : (B,128,H/8,W/8)    high-resolution x_ : _(B,128,H/8,W/8)
         # x_fusion = self.ffm(x_,x)
-        x_fusion = self.aff(x_,x)
+        # x_fusion = self.aff(x_,x)
+        x_fusion = self.effm(x_,x)
 
         # x_ = self.final_layer(x + x_) # x(B,128,H/8,W/8)+x_(B,128,H/8,W/8)->final_layer(B,128,H/8,W/8)->(B,num_classes,H/8,W/8)
         x_ = self.final_layer(x_fusion)
