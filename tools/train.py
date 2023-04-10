@@ -300,6 +300,8 @@ def main():
         ('lr', []),
         ('train_loss', []),
         ('pixel_accuracy',[]),
+        ('boundary_bce_loss',[]),
+        ('boundary_dice_loss',[])
     ])
     validate_log = OrderedDict([
         ('epoch', []),
