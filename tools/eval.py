@@ -36,11 +36,9 @@ root = os.path.abspath(os.path.join(os.getcwd()))
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Train segmentation network')
-<<<<<<< HEAD
+
     cfg_path = os.path.join(root, "experiments/cityscapes/ddrnet23_slim.yaml")
-=======
-    cfg_path = os.path.join(root, "experiments/camvid/ddrnet23_slim.yaml")
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
+
     parser.add_argument('--cfg',
                         help='experiment configure file name',
                         default=cfg_path,
@@ -86,11 +84,9 @@ def main():
     else:
         model_state_file = os.path.join(final_output_dir, 'best.pth')      
         # model_state_file = os.path.join(final_output_dir, 'final_state.pth')
-<<<<<<< HEAD
+
 
     model_state_file = os.path.join(root,model_state_file)
-=======
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
     print(model_state_file)
     logger.info('=> loading model from {}'.format(model_state_file))
         
@@ -111,10 +107,9 @@ def main():
 
     # prepare data
     test_size = (config.TEST.IMAGE_SIZE[1], config.TEST.IMAGE_SIZE[0])
-<<<<<<< HEAD
+
     batch_size = 1
-=======
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
+
     test_dataset = eval('lib.datasets.'+config.DATASET.DATASET)(
                         root=config.DATASET.ROOT,
                         list_path=config.DATASET.TEST_SET,
@@ -129,11 +124,7 @@ def main():
 
     testloader = torch.utils.data.DataLoader(
         test_dataset,
-<<<<<<< HEAD
         batch_size=batch_size,
-=======
-        batch_size=1,
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
         shuffle=False,
         num_workers=config.WORKERS,
         pin_memory=True)
@@ -144,18 +135,12 @@ def main():
                                                         test_dataset, 
                                                         testloader, 
                                                         model,
-<<<<<<< HEAD
                                                         sv_dir= final_output_dir,
                                                         sv_pred=False)
 
-    msg = 'BatchSize: {}, MeanIU: {: 4.4f}, Pixel_Acc: {: 4.4f}, \
-        Mean_Acc: {: 4.4f}, Class IoU: '.format(batch_size, mean_IoU,
-=======
-                                                        sv_pred=False)
 
-    msg = 'MeanIU: {: 4.4f}, Pixel_Acc: {: 4.4f}, \
-        Mean_Acc: {: 4.4f}, Class IoU: '.format(mean_IoU, 
->>>>>>> e4abc71a3d00cde32d34f9f3749ddaac85052449
+    msg = 'BatchSize:{}, MeanIU: {: 4.4f}, Pixel_Acc: {: 4.4f}, \
+        Mean_Acc: {: 4.4f}, Class IoU: '.format(batch_size,mean_IoU,
         pixel_acc, mean_acc)
     logging.info(msg)
     logging.info(IoU_array)
