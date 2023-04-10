@@ -113,8 +113,8 @@ def train(config, epoch, num_epoch, epoch_iters, base_lr,
                     epoch, num_epoch, i_iter, epoch_iters,
                     batch_time.average(), [x['lr'] for x in optimizer.param_groups], ave_loss.average(),
                     ave_acc.average(),
-                    boundary_bce_loss.average(),
-                    boundary_dice_loss.average())
+                    boundary_bce_loss,
+                    boundary_dice_loss)
             logging.info(msg)
 
     writer.add_scalar('train_loss', ave_loss.average(), global_steps)
