@@ -388,6 +388,48 @@ class AFF(nn.Module):
 
 
 
+class EnhancedFeatureFusion(nn.Module):
+
+    def __init__(self,in_chan, out_chan):
+        super(EnhancedFeatureFusion, self).__init__()
+        self.convblk = ConvBNReLU(in_chan, out_chan, ks=1, stride=1, padding=0)
+
+        self.global_att = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(out_chan, out_chan // 4, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(out_chan // 4),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_chan // 4, out_chan, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(out_chan),
+        )
+
+        self.local_att = nn.Sequential(
+            nn.Conv2d(out_chan, out_chan // 4, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(out_chan // 4),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_chan // 4, out_chan, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(out_chan),
+        )
+
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self,feat_sp,feat_cp):
+        fcat = torch.cat([feat_sp, feat_cp], dim=1)
+        feat = self.convblk(fcat)
+
+        x_global = self.global_att(feat)
+        x_local = self.local_att(feat)
+
+        attn = x_global + x_local
+        weight = self.sigmoid(attn)
+        feat_attn = torch.mul(feat,weight)
+
+        feat_out = feat + feat_attn
+        return feat_out
+
+
+
+
 
 class DualResNet(nn.Module):
 
@@ -462,7 +504,9 @@ class DualResNet(nn.Module):
         self.ffm = FeatureFusionModule(256,128)
 
         self.aff = AFF(128,4)
-        
+
+        self.effm = EnhancedFeatureFusion(256,128)
+
         self.final_layer = segmenthead(planes * 4, head_planes, num_classes)
 
         self.init_weight()
@@ -549,7 +593,8 @@ class DualResNet(nn.Module):
         # low-resolution与 high-resolution最终的输出通过 FFM模块进行融合
         # low-resolution x : (B,128,H/8,W/8)    high-resolution x_ : _(B,128,H/8,W/8)
         # x_fusion = self.ffm(x_,x)
-        x_fusion = self.aff(x_,x)
+        # x_fusion = self.aff(x_,x)
+        x_fusion = self.effm(x_,x)
 
         # x_ = self.final_layer(x + x_) # x(B,128,H/8,W/8)+x_(B,128,H/8,W/8)->final_layer(B,128,H/8,W/8)->(B,num_classes,H/8,W/8)
         x_ = self.final_layer(x_fusion)
