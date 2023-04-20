@@ -521,10 +521,12 @@ class DualResNet(nn.Module):
 
         if self.augment:
             temp = x_
-
+            
+            
         x = self.layer4(self.relu(x)) # conv5-low-resolution (B,256,H/32,W/32) (BasicBlock)
 
         layers.append(x)
+        
         x_ = self.layer4_(self.relu(x_)) # conv5-high-resolution (B,64,H/8,W/8) (BasicBlock)
         x_ = x_ + self.spatial_attention(x_)
      
@@ -534,7 +536,7 @@ class DualResNet(nn.Module):
                         size=[height_output, width_output],
                         mode='bilinear') # conv5-low-to-high (B,256,H/32,W/32)[compression4]->(B,64,H/32,W/32)[F.interpolate]->(B,64,H/8,W/8)
 
-
+        
         x_ = self.layer5_(self.relu(x_))# conv5-high-resolution (B,64,H/8,W/8) [Bottleneck stride=1 block_num=1]->(B,128,H/8,W/8)
         x_ = x_ + self.spatial_attention(x_)
 

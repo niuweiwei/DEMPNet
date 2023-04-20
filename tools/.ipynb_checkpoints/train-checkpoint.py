@@ -49,7 +49,7 @@ def parse_args():
                         help='experiment configure file name',
                         default=cfg_path,
                         type=str)
-    parser.add_argument('--seed', type=int, default=34)
+    parser.add_argument('--seed', type=int, default=300)
     parser.add_argument("--local_rank", type=int, default=0)
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
@@ -228,6 +228,8 @@ def main():
     else:
         model = FullModel(model, criterion, False)
 
+
+
     if distributed:
         model = model.to(device)
         model = torch.nn.parallel.DistributedDataParallel(
@@ -320,7 +322,7 @@ def main():
         else:
             train(config, epoch, config.TRAIN.END_EPOCH, 
                   epoch_iters, config.TRAIN.LR, num_iters,
-                  trainloader, optimizer, model, writer_dict, train_log)
+                  trainloader, optimizer, model, writer_dict, train_log,config.LOSS.USE_DETAIL_LOSS)
 
         pd.DataFrame(train_log).to_csv('%s/train_log.csv' % final_output_dir, index=False, float_format='%.5f')
 

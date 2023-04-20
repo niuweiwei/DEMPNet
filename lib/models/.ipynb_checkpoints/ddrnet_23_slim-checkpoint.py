@@ -2,6 +2,7 @@ import math
 import os.path
 
 import torch
+import cv2 as cv
 import numpy as np 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -347,6 +348,47 @@ class FeatureFusionModule(nn.Module):
 
 
 
+class AFF(nn.Module):
+    '''
+    多特征融合 AFF
+    '''
+
+    def __init__(self, channels=64, r=4):
+        super(AFF, self).__init__()
+        inter_channels = int(channels // r)
+
+        self.local_att = nn.Sequential(
+            nn.Conv2d(channels, inter_channels, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(inter_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(inter_channels, channels, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(channels),
+        )
+
+        self.global_att = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(channels, inter_channels, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(inter_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(inter_channels, channels, kernel_size=1, stride=1, padding=0),
+            nn.BatchNorm2d(channels),
+        )
+
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x, residual):
+        xa = x + residual
+        xl = self.local_att(xa)
+        xg = self.global_att(xa)
+        xlg = xl + xg
+        wei = self.sigmoid(xlg)
+
+        xo = 2 * x * wei + 2 * residual * (1 - wei)
+        return xo
+
+
+
+
 class DualResNet(nn.Module):
 
     def __init__(self, block, layers, num_classes=19, planes=64, spp_planes=128, head_planes=128, augment=True, detail = False):
@@ -418,6 +460,8 @@ class DualResNet(nn.Module):
 
 
         self.ffm = FeatureFusionModule(256,128)
+
+        self.aff = AFF(128,4)
         
         self.final_layer = segmenthead(planes * 4, head_planes, num_classes)
 
@@ -477,10 +521,12 @@ class DualResNet(nn.Module):
 
         if self.augment:
             temp = x_
-
+            
+            
         x = self.layer4(self.relu(x)) # conv5-low-resolution (B,256,H/32,W/32) (BasicBlock)
 
         layers.append(x)
+        
         x_ = self.layer4_(self.relu(x_)) # conv5-high-resolution (B,64,H/8,W/8) (BasicBlock)
         x_ = x_ + self.spatial_attention(x_)
      
@@ -490,7 +536,7 @@ class DualResNet(nn.Module):
                         size=[height_output, width_output],
                         mode='bilinear') # conv5-low-to-high (B,256,H/32,W/32)[compression4]->(B,64,H/32,W/32)[F.interpolate]->(B,64,H/8,W/8)
 
-
+        
         x_ = self.layer5_(self.relu(x_))# conv5-high-resolution (B,64,H/8,W/8) [Bottleneck stride=1 block_num=1]->(B,128,H/8,W/8)
         x_ = x_ + self.spatial_attention(x_)
 
@@ -502,7 +548,8 @@ class DualResNet(nn.Module):
 
         # low-resolution与 high-resolution最终的输出通过 FFM模块进行融合
         # low-resolution x : (B,128,H/8,W/8)    high-resolution x_ : _(B,128,H/8,W/8)
-        x_fusion = self.ffm(x_,x)
+        # x_fusion = self.ffm(x_,x)
+        x_fusion = self.aff(x_,x)
 
         # x_ = self.final_layer(x + x_) # x(B,128,H/8,W/8)+x_(B,128,H/8,W/8)->final_layer(B,128,H/8,W/8)->(B,num_classes,H/8,W/8)
         x_ = self.final_layer(x_fusion)
@@ -537,11 +584,6 @@ def DualResNet_imagenet(cfg, pretrained=False):
 
     model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=cfg.DATASET.NUM_CLASSES, planes=32, spp_planes=128, head_planes=64, augment=is_augment, detail=is_detail)
     if pretrained:
-        root = os.path.abspath(os.path.join(os.getcwd()))
-
-
-    model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=cfg.DATASET.NUM_CLASSES, planes=32, spp_planes=128, head_planes=64, augment=is_augment, detail=is_detail)
-    if pretrained:
         root = os.path.abspath(os.getcwd())
         pretrained_path = os.path.join(root,cfg.MODEL.PRETRAINED)
         pretrained_state = torch.load(pretrained_path, map_location='cpu')
@@ -558,7 +600,30 @@ def get_seg_model(cfg, **kwargs):
 
 
 if __name__ == '__main__':
-    x = torch.rand(4, 3, 800, 800)
-    net = DualResNet_imagenet(pretrained=False)
-    y = net(x)
-    print(y.shape)
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    model = DualResNet(BasicBlock, [2, 2, 2, 2], num_classes=19, planes=32, spp_planes=128,head_planes=64, augment=True, detail=True)
+    model_state_file = "../../pretrained_models/best.pth"
+    model = model.to(device)
+    model.eval()
+    print('=> loading model from {}'.format(model_state_file))
+    pretrained_dict = torch.load(model_state_file)
+    if 'state_dict' in pretrained_dict:
+        pretrained_dict = pretrained_dict['state_dict']
+    model_dict = model.state_dict()
+    pretrained_dict = {k[6:]: v for k, v in pretrained_dict.items()
+                       if k[6:] in model_dict.keys()}
+    for k, _ in pretrained_dict.items():
+        print('=> loading {} from pretrained model'.format(k))
+    model_dict.update(pretrained_dict)
+    model.load_state_dict(model_dict)
+
+    img_path = "../../images/test.png"
+    img = cv.imread(img_path)
+    img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+    img = cv.resize(img, (512, 512))
+    img_ = torch.from_numpy(img).float().permute(2, 0, 1).unsqueeze(0)/255
+    img_ = img_.to(device)
+    outputs1 = model(img_)
+    outputs2 = model(img_)
+    print((outputs1[1]-outputs2[1]))
+
